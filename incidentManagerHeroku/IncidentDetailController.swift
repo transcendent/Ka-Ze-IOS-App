@@ -44,6 +44,14 @@ class IncidentDetailController: UITableViewController {
         // add the save button to the navigation bar
         var saveButtonItem:UIBarButtonItem = UIBarButtonItem(title: "Save", style: .Plain, target: self, action: "updateIncident")
         self.navigationItem.rightBarButtonItem = saveButtonItem
+        
+        // add a done button to the toolbars for the description and name fields
+        let keyboardToolbar = UIToolbar()
+        keyboardToolbar.sizeToFit()
+        let flexBarButton = UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: nil, action: nil)
+        let doneBarButton = UIBarButtonItem(barButtonSystemItem: .Done, target: self, action: Selector("doneButtonPressed"))
+        keyboardToolbar.items = [flexBarButton, doneBarButton]
+        descriptionTextView.inputAccessoryView = keyboardToolbar
     
         }
         
@@ -61,6 +69,10 @@ class IncidentDetailController: UITableViewController {
         // send the request to update the record in Heroku
         activityIndicator.startAnimating()
         HerokuServices().updateIncidentInHeroku(incident, successCallback:showSuccessMessage, failureCallback:showError)
+    }
+    
+    func doneButtonPressed() {
+        self.view.endEditing(true)
     }
     
 
