@@ -73,7 +73,7 @@ class HerokuServices {
     
     // updates an incident in Heroku
     func updateIncidentInHeroku(incident:Incident, successCallback:(() -> Void), failureCallback:(message:String) -> Void) {
-        var getEndpoint: String = "http://" + herokuHost + "/incidents/" + incident.id + ".json"
+        var getEndpoint: String = "https://" + herokuHost + "/incidents/" + incident.id + ".json"
         var urlRequest = NSMutableURLRequest(URL: NSURL(string: getEndpoint)!)
         urlRequest.HTTPMethod = "PUT"
         urlRequest.setValue("Basic \(buildBasicAuthHeader())", forHTTPHeaderField: "Authorization")
@@ -108,7 +108,7 @@ class HerokuServices {
     
     // pulls the incidents from Heroku
     func getIncidentsFromHeroku(successCallback: (incidents:[Incident]) -> Void, failureCallback:(message:String) -> Void) {
-        var getEndpoint: String = "http://" + herokuHost + "/incidents.json"
+        var getEndpoint: String = "https://" + herokuHost + "/incidents.json"
         var urlRequest = NSMutableURLRequest(URL: NSURL(string: getEndpoint)!)
         urlRequest.HTTPMethod = "GET"
         urlRequest.setValue("Basic \(buildBasicAuthHeader())", forHTTPHeaderField: "Authorization")
