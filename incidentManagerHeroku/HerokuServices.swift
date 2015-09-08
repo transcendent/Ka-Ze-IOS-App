@@ -136,8 +136,11 @@ class HerokuServices {
                         // map the attributes from the dictionary into the incident object
                         var incident:Incident = Incident()
                         
+                        var dateTimeFormatter = NSDateFormatter()
+                        dateTimeFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
+                        
                         var dateFormatter = NSDateFormatter()
-                        dateFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
+                        dateFormatter.dateFormat = "yyyy-MM-dd"
                         
                         incident.id = String(record["id"] as! Int)
                         incident.caseNumber = record["incident_number"] as? String
@@ -151,7 +154,7 @@ class HerokuServices {
                         incident.incidentDescription = record["description"] as? String
                         
                         if let lastModifiedDateObject:AnyObject = record["updated_at"] {
-                            incident.lastModified = dateFormatter.dateFromString(lastModifiedDateObject as! String)!
+                            incident.lastModified = dateTimeFormatter.dateFromString(lastModifiedDateObject as! String)!
                         }
                         if let closedDateObject:AnyObject = record["closed_date"] {
                             if (!(closedDateObject is NSNull)) {
