@@ -168,6 +168,7 @@
 		22E9B9301B7A2A3500562325 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0720;
 				LastUpgradeCheck = 0640;
 				ORGANIZATIONNAME = deloitte;
 				TargetAttributes = {

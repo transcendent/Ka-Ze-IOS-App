@@ -18,17 +18,30 @@ along with Ka-Ze-IOS-App.  If not, see https://github.com/transcendent/ka-ze-rai
 
 import Foundation
 
+
+// removed in Swift 2.0, adding back as an extension as per http://stackoverflow.com/questions/32501627/stringbyappendingpathcomponent-is-unavailable
+extension String {
+    
+    func stringByAppendingPathComponent(path: String) -> String {
+        
+        let nsSt = self as NSString
+        
+        return nsSt.stringByAppendingPathComponent(path)
+    }
+}
+
 class HerokuServices {
     
     private var integrationUserName:String!
     private var integrationUserPassword:String!
     private var herokuHost:String!
     
+    
     init() {
         // very useful piece of code for reading settings and setting defaults taken from
         // http://stackoverflow.com/questions/6291477/how-to-retrieve-values-from-settings-bundle-in-objective-c
-        var standardUserDefaults = NSUserDefaults.standardUserDefaults()
-        var settings : AnyObject? = standardUserDefaults.objectForKey("integrationUser")
+        let standardUserDefaults = NSUserDefaults.standardUserDefaults()
+        let settings : AnyObject? = standardUserDefaults.objectForKey("integrationUser")
         if  settings == nil {
             self.registerDefaultsFromSettingsBundle();
         }
@@ -44,37 +57,38 @@ class HerokuServices {
     
     func registerDefaultsFromSettingsBundle() {
         // this function writes default settings as settings
-        var settingsBundle = NSBundle.mainBundle().pathForResource("Settings", ofType: "bundle")
+        let settingsBundle = NSBundle.mainBundle().pathForResource("Settings", ofType: "bundle")
         if settingsBundle == nil {
             NSLog("Could not find Settings.bundle");
             return
         }
-        var settings = NSDictionary(contentsOfFile:settingsBundle!.stringByAppendingPathComponent("Root.plist"))!
-        var preferences: [NSDictionary] = settings.objectForKey("PreferenceSpecifiers") as! [NSDictionary];
-        var defaultsToRegister = NSMutableDictionary(capacity:(preferences.count));
+        let settings = NSDictionary(contentsOfFile:settingsBundle!.stringByAppendingPathComponent("Root.plist"))!
+        let preferences: [NSDictionary] = settings.objectForKey("PreferenceSpecifiers") as! [NSDictionary];
+        var defaultsToRegister = [String: AnyObject]() //NSMutableDictionary(capacity:(preferences.count));
         
         for prefSpecification:NSDictionary in preferences {
-            var key: NSCopying? = prefSpecification.objectForKey("Key")as! NSCopying?
+            let key: String? = prefSpecification.objectForKey("Key")as! String?
             if key != nil {
-                defaultsToRegister.setObject(prefSpecification.objectForKey("DefaultValue")!, forKey: key!)
+                //defaultsToRegister.setObject(prefSpecification.objectForKey("DefaultValue")!, forKey: key!)
+                defaultsToRegister[key!] = prefSpecification.objectForKey("DefaultValue")
             }
         }
-        NSUserDefaults.standardUserDefaults().registerDefaults(defaultsToRegister as [NSObject : AnyObject]);
+        NSUserDefaults.standardUserDefaults().registerDefaults(defaultsToRegister);
     }
     
     
     // builds the basic authorization header to keep devise happy
     private func buildBasicAuthHeader() -> String {
-        var authorizationString:String = integrationUserName + ":" + integrationUserPassword
-        var authorizationData:NSData = authorizationString.dataUsingEncoding(NSUTF8StringEncoding)!
-        var base64EncodedAuthorization:String = authorizationData.base64EncodedStringWithOptions(nil)
+        let authorizationString:String = integrationUserName + ":" + integrationUserPassword
+        let authorizationData:NSData = authorizationString.dataUsingEncoding(NSUTF8StringEncoding)!
+        let base64EncodedAuthorization:String = authorizationData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
         return base64EncodedAuthorization
     }
     
     // updates an incident in Heroku
     func updateIncidentInHeroku(incident:Incident, successCallback:(() -> Void), failureCallback:(message:String) -> Void) {
-        var getEndpoint: String = "https://" + herokuHost + "/incidents/" + incident.id + ".json"
-        var urlRequest = NSMutableURLRequest(URL: NSURL(string: getEndpoint)!)
+        let getEndpoint: String = "https://" + herokuHost + "/incidents/" + incident.id + ".json"
+        let urlRequest = NSMutableURLRequest(URL: NSURL(string: getEndpoint)!)
         urlRequest.HTTPMethod = "PUT"
         urlRequest.setValue("Basic \(buildBasicAuthHeader())", forHTTPHeaderField: "Authorization")
         urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -88,28 +102,32 @@ class HerokuServices {
         if let statusText = incident.status {
             params["status"] = statusText
         }
-        
-        var err: NSError?
-        urlRequest.HTTPBody = NSJSONSerialization.dataWithJSONObject(params, options: nil, error: &err)
-        // make the call
-        NSURLConnection.sendAsynchronousRequest(urlRequest, queue: NSOperationQueue(), completionHandler:{
-            data, response, error -> Void in
-            if let anError = error {
-                // send the error back for display
-                failureCallback(message: error.description)
-            }
-            println (NSString(data:response, encoding: NSUTF8StringEncoding))
-            successCallback()
-            
-        })
+    
+        do {
+            let jsonPayload = try NSJSONSerialization.dataWithJSONObject(params, options: NSJSONWritingOptions(rawValue:0))        // make the call
+            urlRequest.HTTPBody = jsonPayload
+            NSURLConnection.sendAsynchronousRequest(urlRequest, queue: NSOperationQueue(), completionHandler:{
+                data, response, error -> Void in
+                if let anError = error {
+                    // send the error back for display
+                    failureCallback(message: error!.description)
+                }
+                print (NSString(data:response!, encoding: NSUTF8StringEncoding))
+                successCallback()
+            })
+        }
+        catch let error as NSError {
+            print(error.localizedDescription)
+        }
+
         
     }
     
     
     // pulls the incidents from Heroku
     func getIncidentsFromHeroku(successCallback: (incidents:[Incident]) -> Void, failureCallback:(message:String) -> Void) {
-        var getEndpoint: String = "https://" + herokuHost + "/incidents.json"
-        var urlRequest = NSMutableURLRequest(URL: NSURL(string: getEndpoint)!)
+        let getEndpoint: String = "https://" + herokuHost + "/incidents.json"
+        let urlRequest = NSMutableURLRequest(URL: NSURL(string: getEndpoint)!)
         urlRequest.HTTPMethod = "GET"
         urlRequest.setValue("Basic \(buildBasicAuthHeader())", forHTTPHeaderField: "Authorization")
         
@@ -117,36 +135,30 @@ class HerokuServices {
         
         // make the call
         NSURLConnection.sendAsynchronousRequest(urlRequest, queue: NSOperationQueue(), completionHandler:{
-            (response:NSURLResponse!, data: NSData!, error: NSError!) -> Void in
+            response,data,  error -> Void in
             if let anError = error {
                 // send the error back for display
-                failureCallback(message: error.description)
+                failureCallback(message: error!.description)
             }
             else {
                 // parse out the json message into the incidents
-                var jsonError: NSError?
-                let incidentArray = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments, error: &jsonError) as! NSArray
-                
-                if let aJSONError = jsonError {
-                    // send the error back for display
-                    failureCallback(message: error.description)
-                }
-                else {
+                do {
+                    let incidentArray = try NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments) as! NSArray
                     for record in incidentArray  {
                         // map the attributes from the dictionary into the incident object
-                        var incident:Incident = Incident()
+                        let incident:Incident = Incident()
                         
-                        var dateTimeFormatter = NSDateFormatter()
+                        let dateTimeFormatter = NSDateFormatter()
                         dateTimeFormatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
                         
-                        var dateFormatter = NSDateFormatter()
+                        let dateFormatter = NSDateFormatter()
                         dateFormatter.dateFormat = "yyyy-MM-dd"
                         
                         incident.id = String(record["id"] as! Int)
                         incident.caseNumber = record["incident_number"] as? String
                         
-                        var firstName = record["first_name"] as! String
-                        var lastName = record["last_name"] as! String
+                        let firstName = record["first_name"] as! String
+                        let lastName = record["last_name"] as! String
                         incident.accountName = firstName + " " + lastName
                         
                         incident.status = record["status"] as? String
@@ -175,6 +187,10 @@ class HerokuServices {
                     }
                     successCallback(incidents:incidents)
                 }
+                catch let error as NSError {
+                    failureCallback(message: error.description)
+                }
+                    
             }
         })
     }

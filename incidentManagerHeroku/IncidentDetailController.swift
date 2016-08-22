@@ -42,7 +42,7 @@ class IncidentDetailController: UITableViewController {
         descriptionTextView.text = incident.incidentDescription
         
         // add the save button to the navigation bar
-        var saveButtonItem:UIBarButtonItem = UIBarButtonItem(title: "Save", style: .Plain, target: self, action: "updateIncident")
+        let saveButtonItem:UIBarButtonItem = UIBarButtonItem(title: "Save", style: .Plain, target: self, action: "updateIncident")
         self.navigationItem.rightBarButtonItem = saveButtonItem
         
         // add a done button to the toolbars for the description and name fields
@@ -79,7 +79,7 @@ class IncidentDetailController: UITableViewController {
     func showSuccessMessage() {
         dispatch_async(dispatch_get_main_queue(), {
             self.activityIndicator.stopAnimating()
-            var alert : UIAlertView = UIAlertView(title: "Success", message: "Record updated", delegate: nil, cancelButtonTitle: "OK")
+            let alert : UIAlertView = UIAlertView(title: "Success", message: "Record updated", delegate: nil, cancelButtonTitle: "OK")
             alert.show()
         })
     }
@@ -88,7 +88,7 @@ class IncidentDetailController: UITableViewController {
         dispatch_async(dispatch_get_main_queue(), {
             UIApplication.sharedApplication().endIgnoringInteractionEvents()
             self.activityIndicator.stopAnimating()
-            var alert : UIAlertView = UIAlertView(title: "Error", message: errorMessage, delegate: nil, cancelButtonTitle: "OK")
+            let alert : UIAlertView = UIAlertView(title: "Error", message: errorMessage, delegate: nil, cancelButtonTitle: "OK")
             alert.show()
         })
     }

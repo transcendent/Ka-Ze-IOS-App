@@ -46,7 +46,7 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
         // Do any additional setup after loading the view.
         
         // add the refresh button to the navigation bar
-        var refreshButtonItem:UIBarButtonItem = UIBarButtonItem(title: "Refresh", style: .Plain, target: self, action: "loadIncidents")
+        let refreshButtonItem:UIBarButtonItem = UIBarButtonItem(title: "Refresh", style: .Plain, target: self, action: "loadIncidents")
 
         navgationControl.leftBarButtonItem = refreshButtonItem
         
@@ -141,7 +141,7 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject!) {
         if segue.identifier == "openIncidentSegue" {
-            var viewController:IncidentDetailController = segue.destinationViewController as! IncidentDetailController
+            let viewController:IncidentDetailController = segue.destinationViewController as! IncidentDetailController
             viewController.incident = selectedIncident!
         }
     }
@@ -173,7 +173,7 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
         if cell == nil {
             cell = UITableViewCell(style:UITableViewCellStyle.Default, reuseIdentifier: "cell")
         }
-        var currentIncident:Incident = incidentList[indexPath.item]
+        let currentIncident:Incident = incidentList[indexPath.item]
         cell!.textLabel?.text = currentIncident.subject
         return cell!
     }
@@ -181,15 +181,15 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     // MARK: - MKMapViewDelegate
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
-        if view.annotation.isKindOfClass(Incident) {
+        if view.annotation!.isKindOfClass(Incident) {
             selectedIncident = (view.annotation as! Incident)
             openIncidentDetail()
         }
     }
     
-    func mapView(mapView: MKMapView!,viewForAnnotation annotation: MKAnnotation!) -> MKAnnotationView {
+    func mapView(mapView: MKMapView,viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
         
-        var incident:Incident = annotation as! Incident
+        let incident:Incident = annotation as! Incident
         let reuseId:String = "pin"
         var pinView = mapView.dequeueReusableAnnotationViewWithIdentifier(reuseId)   as? MKPinAnnotationView
         
@@ -230,7 +230,7 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
         dispatch_async(dispatch_get_main_queue(), {
             UIApplication.sharedApplication().endIgnoringInteractionEvents()
             self.activityIndicator.stopAnimating()
-            var alert : UIAlertView = UIAlertView(title: "Error", message: errorMessage, delegate: nil, cancelButtonTitle: "OK")
+            let alert : UIAlertView = UIAlertView(title: "Error", message: errorMessage, delegate: nil, cancelButtonTitle: "OK")
             alert.show()
         })
     }
